@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexCodes — Ibraheem Builds</title>
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="detail-wrap">
+      <a href="projects.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Projects
+      </a>
+      <div class="detail-eyebrow load-up load-delay-1"><span class="card-category">AI</span></div>
+      <h1 class="detail-title load-up load-delay-2">NexCodes</h1>
+      <p class="detail-desc load-up load-delay-3">AI-powered website builder. Describe what you want, get a complete working website — no templates, no drag-and-drop, just a prompt and an output.</p>
+
+      <div class="tech-icons load-up load-delay-4">
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/anthropic/ffffff" alt="Anthropic" /><span>Claude API</span>
+        </div>
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/nodedotjs/ffffff" alt="Node.js" /><span>Node.js</span>
+        </div>
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/javascript/ffffff" alt="JS" /><span>Vanilla JS</span>
+        </div>
+      </div>
+
+      <div class="detail-section reveal">
+        <p class="detail-section-label">How I Made It</p>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          The idea is simple: Claude outputs the entire website as a single HTML file with embedded CSS and JS. The system prompt is strict — no explanations, no markdown fences, just raw HTML that the browser can run. Getting that consistency took a lot of iteration.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="kw">async function</span> <span class="fn">generateSite</span>(description) {
+  <span class="kw">const</span> system = <span class="st">`You are a world-class frontend developer.
+Output ONLY a complete, valid HTML document.
+No explanations. No markdown. No code fences.
+Embed all CSS in a &lt;style&gt; tag. Embed all JS in a &lt;script&gt; tag.
+Dark theme, modern, professional.`</span>;
+
+  <span class="kw">const</span> res = <span class="kw">await</span> client.messages.<span class="fn">create</span>({
+    model:      <span class="st">'claude-opus-4-5'</span>,
+    max_tokens: <span class="nm">4096</span>,
+    system,
+    messages: [{ role: <span class="st">'user'</span>, content: description }]
+  });
+
+  <span class="kw">return</span> res.content[<span class="nm">0</span>].text; <span class="cm">// raw HTML string</span>
+}
+
+<span class="cm">// Render in sandboxed iframe — safe, no XSS risk to parent</span>
+previewFrame.srcdoc = <span class="kw">await</span> <span class="fn">generateSite</span>(userInput.value);</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          The preview renders in a sandboxed <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">iframe</code> using <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">srcdoc</code>. This keeps the generated code fully isolated from the parent page — any JS the model writes can't touch the NexCodes UI.
+        </p>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          Iteration works by passing the previous HTML back as context. The user says "make the header bigger" and the prompt sends both the original description and the last generated HTML, so Claude knows what it's modifying.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="cm">// Iterative editing — pass previous HTML as context</span>
+<span class="kw">async function</span> <span class="fn">updateSite</span>(change, previousHtml) {
+  <span class="kw">return</span> client.messages.<span class="fn">create</span>({
+    model:      <span class="st">'claude-opus-4-5'</span>,
+    max_tokens: <span class="nm">4096</span>,
+    system:     <span class="st">'Output ONLY valid HTML. No markdown. No explanation.'</span>,
+    messages: [
+      { role: <span class="st">'user'</span>,      content: <span class="st">`Here is the current site:\n\n</span><span class="nm">${previousHtml}</span><span class="st">`</span> },
+      { role: <span class="st">'assistant'</span>, content: previousHtml },
+      { role: <span class="st">'user'</span>,      content: <span class="st">`Apply this change: </span><span class="nm">${change}</span><span class="st">`</span> }
+    ]
+  }).<span class="fn">then</span>(r => r.content[<span class="nm">0</span>].text);
+}</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;">
+          The main limitation is token budget. Large generated sites can hit the output limit, cutting the HTML mid-tag and breaking the render. I added a simple check that validates the HTML ends with <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">&lt;/html&gt;</code> before updating the preview.
+        </p>
+      </div>
+
+      <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);">
+        <a href="project-nexanime.html" class="back-link" style="margin:0;">&larr; NexAnime</a>
+      </div>
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

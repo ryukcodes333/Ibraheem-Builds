@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How I Built a WhatsApp Bot with a Full Economy System — Ibraheem Builds</title>
+  <meta name="description" content="How Shadow Garden went from zero to a working economy, Pokémon, and RPG battles inside WhatsApp." />
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="article-wrap">
+
+      <a href="blog.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Posts
+      </a>
+
+      <div class="article-header load-up load-delay-1">
+        <div class="article-meta">
+          <span class="article-tag">Bots</span>
+          <span class="article-date">Dec 2024</span>
+          <span class="article-read">5 min read</span>
+        </div>
+        <h1 class="article-title">How I Built a WhatsApp Bot with a Full Economy System</h1>
+        <p class="article-lead">Shadow Garden started as "I want a bot that does cool stuff." Three months later it had currency, Pokémon, and turn-based battles — all in your DMs. Here's how.</p>
+      </div>
+
+      <div class="article-body reveal">
+
+        <h2>Why WhatsApp</h2>
+        <p>Everyone I know uses WhatsApp. Not Discord, not Telegram — WhatsApp. If I wanted to build something people would actually interact with, it had to be there.</p>
+        <p>The problem is WhatsApp doesn't have an official bot API. So I had to use <strong>Baileys</strong>, a Node.js library that reverse-engineers the WhatsApp Web protocol. It works, but WhatsApp can ban your number if you go too hard, so you have to be careful.</p>
+
+        <h2>Keeping the Connection Alive</h2>
+        <p>The first real technical problem was session management. WhatsApp aggressively closes connections that look like automated clients. My first version would disconnect every 20–30 minutes, which made the bot useless.</p>
+        <p>The fix was a reconnect loop. When the connection drops, check if you've been logged out (if so, don't retry), otherwise call the startup function again. It recursively restarts itself. Not elegant, but it works.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code>client.<span class="fn">on</span>(<span class="st">'connection.update'</span>, <span class="kw">async</span> ({ connection, lastDisconnect }) => {
+  <span class="kw">if</span> (connection === <span class="st">'close'</span>) {
+    <span class="kw">const</span> code = lastDisconnect?.error?.output?.statusCode;
+    <span class="kw">if</span> (code !== DisconnectReason.<span class="nm">loggedOut</span>) <span class="fn">startBot</span>();
+  }
+});</code></pre>
+        </div>
+
+        <p>Credentials are saved locally so you don't have to scan the QR code every restart. This was the part that unlocked everything — once sessions were stable, I could actually build features.</p>
+
+        <h2>The Economy System</h2>
+        <p>Every user gets a balance stored in MongoDB. The core operations are simple: check balance, add coins, subtract coins. The tricky part is making sure two commands hitting the database at the same moment don't cause race conditions.</p>
+        <p>MongoDB's <strong>findOneAndUpdate</strong> with <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">$inc</code> is atomic, so you can safely increment without a read-modify-write cycle. I use <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">upsert: true</code> everywhere so new users get created automatically on their first command instead of throwing an error.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="cm">// Atomic coin transfer — no race condition</span>
+<span class="kw">await</span> User.<span class="fn">bulkWrite</span>([
+  { updateOne: { filter: { jid: sender }, update: { $<span class="fn">inc</span>: { balance: -amount } } } },
+  { updateOne: { filter: { jid: receiver }, update: { $<span class="fn">inc</span>: { balance: amount } }, upsert: <span class="kw">true</span> } }
+]);</code></pre>
+        </div>
+
+        <h2>Pokémon and Battles</h2>
+        <p>The Pokémon system uses a local JSON dataset with ~150 species, each with base stats. When a Pokémon spawns, it gets a random HP modifier so every catch is slightly different. Catches go into the user's inventory array in MongoDB.</p>
+        <p>Battles were the hardest feature. The flow is: User 1 challenges User 2 → User 2 accepts → system creates a battle document in MongoDB → turn-based loop starts. Each turn, both players pick a move, the system resolves damage, updates HP, and reports the result.</p>
+        <p>The edge case that broke things: what if someone never responds? I had to add a 60-second timeout per turn. If a player doesn't respond in time, they forfeit the round. That timeout was originally 30 seconds and people kept complaining it was too short.</p>
+
+        <h2>What I'd Do Differently</h2>
+        <p>The command parser is a mess. I'm using a giant if/else chain to match command strings, which works but is fragile. A proper command registry with a map of string → handler function would be cleaner and easier to extend. I knew this while building it and did it the bad way anyway because I just wanted to ship something.</p>
+        <p>Also: WhatsApp bots live and die by session stability. If you're building one, invest in the reconnect logic early. Everything else depends on it.</p>
+
+        <hr />
+        <p>The code for Shadow Garden isn't public, but if you want to talk through any of this, hit me on <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener" style="color:var(--text);text-decoration:underline;">X</a>.</p>
+
+      </div>
+
+      <div style="margin-top:60px;padding-top:32px;border-top:1px solid var(--border);">
+        <a href="blog-nodejs.html" class="view-all">Next: Learning Node.js Without a Course &rarr;</a>
+      </div>
+
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

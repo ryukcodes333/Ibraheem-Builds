@@ -1,0 +1,38 @@
+{
+  "buildCommand": "npx vite build",
+  "outputDirectory": "dist/public",
+  "framework": null,
+  "rewrites": [
+    { "source": "/about",                 "destination": "/about.html" },
+    { "source": "/projects",              "destination": "/projects.html" },
+    { "source": "/blog",                  "destination": "/blog.html" },
+    { "source": "/contact",               "destination": "/contact.html" },
+
+    { "source": "/project-shadow-garden", "destination": "/project-shadow-garden.html" },
+    { "source": "/project-nexora",        "destination": "/project-nexora.html" },
+    { "source": "/project-nextv",         "destination": "/project-nextv.html" },
+    { "source": "/project-iset",          "destination": "/project-iset.html" },
+    { "source": "/project-nexanime",      "destination": "/project-nexanime.html" },
+    { "source": "/project-nexcodes",      "destination": "/project-nexcodes.html" },
+
+    { "source": "/blog-whatsapp-bot",     "destination": "/blog-whatsapp-bot.html" },
+    { "source": "/blog-nodejs",           "destination": "/blog-nodejs.html" },
+    { "source": "/blog-claude-api",       "destination": "/blog-claude-api.html" },
+    { "source": "/blog-build-in-public",  "destination": "/blog-build-in-public.html" },
+    { "source": "/blog-nextv",            "destination": "/blog-nextv.html" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/og.png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    }
+  ]
+}

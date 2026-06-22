@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Node.js Without a Single Course — Ibraheem Builds</title>
+  <meta name="description" content="No tutorial series. Just a project, a lot of errors, and figuring it out." />
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="article-wrap">
+
+      <a href="blog.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Posts
+      </a>
+
+      <div class="article-header load-up load-delay-1">
+        <div class="article-meta">
+          <span class="article-tag">Learning</span>
+          <span class="article-date">Nov 2024</span>
+          <span class="article-read">4 min read</span>
+        </div>
+        <h1 class="article-title">Learning Node.js Without a Single Course</h1>
+        <p class="article-lead">I didn't watch a tutorial series. I picked a thing I wanted to build and figured out what I needed as I went. This is what that actually looked like.</p>
+      </div>
+
+      <div class="article-body reveal">
+
+        <h2>How I Started</h2>
+        <p>I wanted to build a Telegram bot. I'd seen people post about bots online and thought it looked useful. That was the whole plan: "I want to build a bot."</p>
+        <p>I didn't know Node.js. I barely knew JavaScript. I opened the Telegraf docs, copy-pasted the hello world example, and it ran. Then I tried to change it and broke it. Then I fixed it. That cycle is basically everything.</p>
+
+        <h2>The Method (If You Can Call It That)</h2>
+        <p>My process is simple and probably inefficient, but it works for me:</p>
+        <ol>
+          <li><strong>Read the docs</strong> for whatever library I'm using until I understand the basic shape of things</li>
+          <li><strong>Write code</strong> that I think should work</li>
+          <li><strong>Read the error</strong> carefully — most of the time it tells you exactly what's wrong</li>
+          <li><strong>Search the error</strong> if I don't understand it — Stack Overflow or GitHub issues usually have the answer</li>
+          <li>Repeat until it works</li>
+        </ol>
+        <p>The key is: don't give up after step 3. Most beginners quit when they hit an error they don't understand. The error is the lesson. Getting comfortable with errors is half of learning to code.</p>
+
+        <h2>The Async Problem</h2>
+        <p>The thing that confused me the longest was async/await. Coming from nothing, it's not obvious why you need it. My first bot would just return <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">undefined</code> when it tried to read from a database, and I had no idea why.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="cm">// What I wrote first (broken)</span>
+<span class="kw">function</span> <span class="fn">getUser</span>(id) {
+  <span class="kw">const</span> user = User.<span class="fn">findOne</span>({ id }); <span class="cm">// returns a Promise, not a user</span>
+  <span class="kw">return</span> user.balance; <span class="cm">// undefined — the query isn't done yet</span>
+}
+
+<span class="cm">// What I needed</span>
+<span class="kw">async function</span> <span class="fn">getUser</span>(id) {
+  <span class="kw">const</span> user = <span class="kw">await</span> User.<span class="fn">findOne</span>({ id }); <span class="cm">// waits for the query</span>
+  <span class="kw">return</span> user.balance; <span class="cm">// actual value</span>
+}</code></pre>
+        </div>
+
+        <p>Once I understood that database queries, API calls, and file reads all return Promises that you need to <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">await</code>, everything clicked. That was probably week three.</p>
+
+        <h2>Reading Source Code</h2>
+        <p>When the docs weren't clear, I started reading the source code of the libraries I was using. This sounds scary but it's incredibly useful. Library authors name things well. If you can follow the code path from your function call to what actually executes, you understand the library better than any tutorial will teach you.</p>
+        <p>GitHub is full of examples too. When I was building the economy system, I searched GitHub for "telegram bot economy" and found 10 different open-source implementations I could learn from. Not copy — learn from. There's a difference.</p>
+
+        <h2>What I Wish I Knew Earlier</h2>
+        <p><strong>Read error messages completely.</strong> I used to skim them and search just the first line. The important information is often at the bottom of the stack trace, in the part that points to your actual code.</p>
+        <p><strong>console.log is your friend.</strong> When something isn't working, print everything. Print the input, print the output, print the intermediate values. You'll find the bug.</p>
+        <p><strong>It's okay to not understand everything.</strong> I shipped Nexora with parts of the code I didn't fully understand. I came back later and understood them. Progress beats perfection.</p>
+
+        <hr />
+        <p>If you're just starting out and feeling stuck — that's normal. Everyone who's building things feels that. Keep going.</p>
+
+      </div>
+
+      <div style="margin-top:60px;padding-top:32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <a href="blog-whatsapp-bot.html" class="back-link" style="margin:0;">&larr; WhatsApp Bot</a>
+        <a href="blog-claude-api.html" class="view-all">Next: Claude API &rarr;</a>
+      </div>
+
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

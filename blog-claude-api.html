@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>What I Learned Calling the Claude API — Ibraheem Builds</title>
+  <meta name="description" content="Prompt engineering is harder than it looks. Here's what building Iset taught me about working with AI APIs." />
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="article-wrap">
+
+      <a href="blog.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Posts
+      </a>
+
+      <div class="article-header load-up load-delay-1">
+        <div class="article-meta">
+          <span class="article-tag">AI</span>
+          <span class="article-date">Oct 2024</span>
+          <span class="article-read">5 min read</span>
+        </div>
+        <h1 class="article-title">What I Learned Calling the Claude API for the First Time</h1>
+        <p class="article-lead">Building Iset was my first real AI project. Prompt engineering is harder than it looks, rate limits will humble you, and the gap between a good AI product and a bad one is almost entirely in how you handle edge cases.</p>
+      </div>
+
+      <div class="article-body reveal">
+
+        <h2>The First Prompt Was Terrible</h2>
+        <p>My first version of Iset had a prompt that went something like: "Create a goal roadmap for: {goal}". The output was paragraphs of generic advice that you could find on any self-help blog. Useful to nobody.</p>
+        <p>The problem wasn't the model — Claude is genuinely capable of producing great structured output. The problem was that I gave it zero constraints. When you give an AI complete freedom, you get complete inconsistency.</p>
+
+        <h2>Constraining the Output Format</h2>
+        <p>The fix was telling Claude exactly what format to output. Not "here's a suggestion," but "here's the schema, output only this, nothing else." When you're building an app that needs to parse the AI's response programmatically, prose is useless. You need JSON.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="cm">// Prompt v1 — bad</span>
+<span class="st">`Create a goal roadmap for: </span><span class="nm">${goal}</span><span class="st">`</span>
+<span class="cm">// Returns: paragraphs of vague advice</span>
+
+<span class="cm">// Prompt v3 — good</span>
+<span class="st">`Return ONLY valid JSON. No explanation. No markdown fences.
+
+Goal: "</span><span class="nm">${goal}</span><span class="st">"
+Timeframe: </span><span class="nm">${weeks}</span><span class="st"> weeks
+
+Required schema:
+{"milestones":[{"week":1,"title":"","tasks":[""],"resources":[""]}]}`</span></code></pre>
+        </div>
+
+        <p>The difference between v1 and v3 wasn't magic — it was constraints. "Return ONLY valid JSON" tells the model what medium to use. The schema tells it what structure to follow. "No explanation. No markdown fences." eliminates the decorative text it would otherwise wrap around the output.</p>
+
+        <h2>JSON Parsing Will Break</h2>
+        <p>Even with a strict prompt, Claude occasionally outputs something that isn't valid JSON. Maybe it adds a trailing comma, or includes a comment inside the JSON, or wraps the output in backticks despite being told not to. You have to handle this.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="kw">function</span> <span class="fn">safeParseRoadmap</span>(raw) {
+  <span class="cm">// Strip markdown fences if model added them anyway</span>
+  <span class="kw">const</span> cleaned = raw
+    .<span class="fn">replace</span>(<span class="st">/^```(?:json)?\n?/</span>, <span class="st">''</span>)
+    .<span class="fn">replace</span>(<span class="st">/\n?```$/</span>, <span class="st">''</span>)
+    .<span class="fn">trim</span>();
+
+  <span class="kw">try</span> {
+    <span class="kw">return</span> <span class="nm">JSON</span>.<span class="fn">parse</span>(cleaned);
+  } <span class="kw">catch</span> {
+    <span class="cm">// Log and return a fallback instead of crashing</span>
+    console.<span class="fn">error</span>(<span class="st">'JSON parse failed:'</span>, cleaned.<span class="fn">slice</span>(<span class="nm">0</span>, <span class="nm">200</span>));
+    <span class="kw">return null</span>;
+  }
+}</code></pre>
+        </div>
+
+        <p>A <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">try/catch</code> around <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">JSON.parse</code> is not optional when your input is AI-generated. The model is good but not perfect. Your app should handle imperfect gracefully.</p>
+
+        <h2>Rate Limits Are Real</h2>
+        <p>I hit Anthropic's rate limit on the first day of testing. Turns out when you're clicking "generate" every 10 seconds while debugging, you burn through your daily limit fast.</p>
+        <p>The lesson: add request timestamps and cooldowns during development. Even a simple 3-second cooldown between requests saved me from hitting limits constantly. In production you'd handle this properly with retry-after headers, but for a personal project a basic cooldown works fine.</p>
+
+        <h2>What Makes a Good AI Product</h2>
+        <p>After building Iset, I think the quality of an AI-powered product is almost entirely determined by:</p>
+        <ul>
+          <li><strong>The prompt.</strong> Vague prompts give vague outputs. Constrained prompts give consistent, useful outputs.</li>
+          <li><strong>Error handling.</strong> The model will fail sometimes. Your UI should handle that without crashing or confusing the user.</li>
+          <li><strong>Loading states.</strong> AI responses take 3–10 seconds. Show a loading indicator. People will close the tab if they see nothing happening.</li>
+          <li><strong>Fallbacks.</strong> What does your app do when the API is down or returns something invalid? If the answer is "it breaks," you have more work to do.</li>
+        </ul>
+
+        <p>The AI part is the easy part. Prompt → response → parse → render. The hard part is everything around it.</p>
+
+        <hr />
+        <p>Iset is one of the projects I'm most proud of because it actually works reliably. That's harder to achieve than it sounds.</p>
+
+      </div>
+
+      <div style="margin-top:60px;padding-top:32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <a href="blog-nodejs.html" class="back-link" style="margin:0;">&larr; Learning Node.js</a>
+        <a href="blog-build-in-public.html" class="view-all">Next: Build in Public &rarr;</a>
+      </div>
+
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

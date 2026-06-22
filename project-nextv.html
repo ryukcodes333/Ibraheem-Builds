@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexTV — Ibraheem Builds</title>
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="detail-wrap">
+      <a href="projects.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Projects
+      </a>
+      <div class="detail-eyebrow load-up load-delay-1"><span class="card-category">Web Apps</span></div>
+      <h1 class="detail-title load-up load-delay-2">NexTV</h1>
+      <p class="detail-desc load-up load-delay-3">Anime streaming platform with full TMDB integration. Browse trending shows, search any title, and watch — all from a clean dark interface with no backend.</p>
+
+      <div class="tech-icons load-up load-delay-4">
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/themoviedatabase/ffffff" alt="TMDB" /><span>TMDB API</span>
+        </div>
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/javascript/ffffff" alt="JS" /><span>Vanilla JS</span>
+        </div>
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/css3/ffffff" alt="CSS" /><span>CSS3</span>
+        </div>
+      </div>
+
+      <div class="detail-section reveal">
+        <p class="detail-section-label">How I Made It</p>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          NexTV is fully client-side — no backend, no hosting costs beyond a static CDN. All data comes from the TMDB API fetched directly in the browser. The tricky constraint was rate limiting: TMDB allows 40 requests per 10 seconds, which sounds like a lot until you're loading a page with 20 posters and triggering 5 other calls at the same time.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="kw">const</span> BASE  = <span class="st">'https://api.themoviedb.org/3'</span>;
+<span class="kw">const</span> TOKEN = <span class="st">'Bearer '</span> + <span class="nm">TMDB_TOKEN</span>;
+
+<span class="kw">async function</span> <span class="fn">fetchTrending</span>(type = <span class="st">'tv'</span>, page = <span class="nm">1</span>) {
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(
+    <span class="st">`</span><span class="nm">${BASE}</span><span class="st">/trending/</span><span class="nm">${type}</span><span class="st">/week?page=</span><span class="nm">${page}</span><span class="st">`</span>,
+    { headers: { Authorization: TOKEN } }
+  );
+  <span class="kw">if</span> (!res.ok) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="st">`TMDB </span><span class="nm">${res.status}</span><span class="st">`</span>);
+  <span class="kw">return</span> res.<span class="fn">json</span>();
+}
+
+<span class="cm">// Debounced search — don't hammer the API on every keystroke</span>
+<span class="kw">let</span> timer;
+searchInput.<span class="fn">addEventListener</span>(<span class="st">'input'</span>, e => {
+  <span class="fn">clearTimeout</span>(timer);
+  timer = <span class="fn">setTimeout</span>(() => <span class="fn">search</span>(e.target.value), <span class="nm">400</span>);
+});</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          Search uses a 400ms debounce. Poster images are lazy-loaded with <strong style="color:var(--text);">IntersectionObserver</strong> so the page doesn't try to load 200 images at once. Each image only gets its src set when it's about to scroll into view.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="cm">// Lazy load poster images</span>
+<span class="kw">const</span> imgObserver = <span class="kw">new</span> <span class="fn">IntersectionObserver</span>((entries) => {
+  entries.<span class="fn">forEach</span>(entry => {
+    <span class="kw">if</span> (entry.isIntersecting) {
+      <span class="kw">const</span> img = entry.target;
+      img.src = img.dataset.src;
+      imgObserver.<span class="fn">unobserve</span>(img);
+    }
+  });
+}, { rootMargin: <span class="st">'200px'</span> });
+
+document.<span class="fn">querySelectorAll</span>(<span class="st">'img[data-src]'</span>)
+  .<span class="fn">forEach</span>(img => imgObserver.<span class="fn">observe</span>(img));</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;">
+          The biggest thing I learned here: client-side APIs are fine for a solo project, but you're exposing your API key to anyone who opens DevTools. For a real product you'd proxy through a backend. For NexTV, the TMDB key is rate-limited and has no billing attached, so it's an acceptable tradeoff.
+        </p>
+      </div>
+
+      <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <a href="project-nexora.html" class="back-link" style="margin:0;">&larr; Nexora</a>
+        <a href="project-iset.html" class="view-all">Iset &rarr;</a>
+      </div>
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

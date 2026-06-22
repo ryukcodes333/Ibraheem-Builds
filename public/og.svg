@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&amp;display=swap');
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#080808"/>
+
+  <!-- Subtle grid lines -->
+  <line x1="80" y1="0" x2="80" y2="630" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="1120" y1="0" x2="1120" y2="630" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="0" y1="80" x2="1200" y2="80" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="0" y1="550" x2="1200" y2="550" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+
+  <!-- Top label -->
+  <text x="80" y="134" font-family="'Space Grotesk', sans-serif" font-size="13" font-weight="600"
+    letter-spacing="3" fill="rgba(255,255,255,0.35)" text-rendering="geometricPrecision">IBRAHEEM BUILDS</text>
+
+  <!-- Main name -->
+  <text x="80" y="300" font-family="'Space Grotesk', sans-serif" font-size="128" font-weight="700"
+    letter-spacing="-5" fill="#f0ece4" text-rendering="geometricPrecision">ibraheem.</text>
+
+  <!-- Tagline -->
+  <text x="80" y="380" font-family="'Space Grotesk', sans-serif" font-size="26" font-weight="400"
+    fill="rgba(255,255,255,0.38)" text-rendering="geometricPrecision">Developer · Bot Builder · AI Tools</text>
+
+  <!-- Bottom line -->
+  <text x="80" y="510" font-family="'Space Grotesk', sans-serif" font-size="16" font-weight="500"
+    letter-spacing="1" fill="rgba(255,255,255,0.22)" text-rendering="geometricPrecision">16 · Self-taught · Building on the internet</text>
+
+  <!-- Decorative dot -->
+  <circle cx="1120" cy="315" r="4" fill="rgba(255,255,255,0.15)"/>
+  <circle cx="1120" cy="315" r="40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <circle cx="1120" cy="315" r="80" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+</svg>

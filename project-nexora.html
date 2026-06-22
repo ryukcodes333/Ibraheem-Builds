@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexora Telegram Bot — Ibraheem Builds</title>
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="detail-wrap">
+      <a href="projects.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Projects
+      </a>
+
+      <div class="detail-eyebrow load-up load-delay-1">
+        <span class="card-category">Bots</span>
+        <span style="font-size:0.75rem;color:var(--muted);">Telegram</span>
+      </div>
+
+      <h1 class="detail-title load-up load-delay-2">Nexora Telegram Bot</h1>
+      <p class="detail-desc load-up load-delay-3">A Konosuba-themed Telegram bot with 12 command categories — economy, games, moderation, and more — built with Telegraf and a MongoDB backend.</p>
+
+      <div class="tech-icons load-up load-delay-4">
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/nodedotjs/ffffff" alt="Node.js" /><span>Node.js</span>
+        </div>
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/telegram/ffffff" alt="Telegram" /><span>Telegraf</span>
+        </div>
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/mongodb/ffffff" alt="MongoDB" /><span>MongoDB</span>
+        </div>
+      </div>
+
+      <div class="detail-section reveal">
+        <p class="detail-section-label">How I Made It</p>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          Telegraf made the command routing clean. Each of the 12 categories is its own module that registers its commands on a shared bot instance at startup. The hardest category to build was moderation — Telegram's permission model is group-specific and has a lot of inconsistencies depending on whether you're in a supergroup, regular group, or channel.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="cm">// Module pattern — each category registers its own commands</span>
+<span class="kw">const</span> { Telegraf } = <span class="fn">require</span>(<span class="st">'telegraf'</span>);
+<span class="kw">const</span> bot = <span class="kw">new</span> <span class="fn">Telegraf</span>(process.env.<span class="nm">BOT_TOKEN</span>);
+
+<span class="cm">// Load all command categories</span>
+<span class="fn">require</span>(<span class="st">'./commands/economy'</span>)(bot);
+<span class="fn">require</span>(<span class="st">'./commands/games'</span>)(bot);
+<span class="fn">require</span>(<span class="st">'./commands/moderation'</span>)(bot);
+<span class="cm">// ... 9 more</span>
+
+bot.<span class="fn">launch</span>();</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          The daily reward command was the first thing I built. It was a good test case for the cooldown pattern I'd need everywhere else — check last action timestamp in MongoDB, compute the difference, either pay out or return a "come back in Xh" message.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code>bot.<span class="fn">command</span>(<span class="st">'daily'</span>, <span class="kw">async</span> (ctx) => {
+  <span class="kw">const</span> userId  = ctx.from.id;
+  <span class="kw">const</span> user    = <span class="kw">await</span> User.<span class="fn">findOne</span>({ userId });
+  <span class="kw">const</span> now     = Date.<span class="fn">now</span>();
+  <span class="kw">const</span> cd      = <span class="nm">24</span> * <span class="nm">60</span> * <span class="nm">60</span> * <span class="nm">1000</span>;
+
+  <span class="kw">if</span> (user?.lastDaily && now - user.lastDaily < cd) {
+    <span class="kw">const</span> hrs = <span class="nm">Math</span>.<span class="fn">ceil</span>((cd - (now - user.lastDaily)) / <span class="nm">3600000</span>);
+    <span class="kw">return</span> ctx.<span class="fn">reply</span>(<span class="st">`⏳ Come back in </span><span class="nm">${hrs}</span><span class="st">h, weakling.`</span>);
+  }
+
+  <span class="kw">const</span> reward = <span class="nm">Math</span>.<span class="fn">floor</span>(<span class="nm">Math</span>.<span class="fn">random</span>() * <span class="nm">500</span>) + <span class="nm">100</span>;
+  <span class="kw">await</span> User.<span class="fn">updateOne</span>({ userId }, {
+    $<span class="fn">inc</span>: { coins: reward }, $<span class="fn">set</span>: { lastDaily: now }
+  }, { upsert: <span class="kw">true</span> });
+
+  ctx.<span class="fn">reply</span>(<span class="st">`✨ Aqua blesses you with *</span><span class="nm">${reward}</span><span class="st"> coins*!`</span>,
+    { parse_mode: <span class="st">'Markdown'</span> });
+});</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;">
+          The Konosuba theming was actually the most fun part. Every response message references characters and lore from the anime. I wrote a helper that wraps each category's responses with a random in-character line depending on the command type — Aqua for blessings, Kazuma for sarcastic comments, Megumin for anything explosive.
+        </p>
+      </div>
+
+      <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <a href="project-shadow-garden.html" class="back-link" style="margin:0;">&larr; Shadow Garden</a>
+        <a href="project-nextv.html" class="view-all">NexTV &rarr;</a>
+      </div>
+    </div>
+
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building NexTV: An Anime Streaming Site with No Backend — Ibraheem Builds</title>
+  <meta name="description" content="No server, no budget. Just the TMDB API and a lot of edge cases." />
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="article-wrap">
+
+      <a href="blog.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Posts
+      </a>
+
+      <div class="article-header load-up load-delay-1">
+        <div class="article-meta">
+          <span class="article-tag">Web</span>
+          <span class="article-date">Aug 2024</span>
+          <span class="article-read">4 min read</span>
+        </div>
+        <h1 class="article-title">Building NexTV: An Anime Streaming Site with No Backend</h1>
+        <p class="article-lead">No paid API, no server, no budget. Just the TMDB API, some creative caching, and a lot of edge cases I didn't see coming. This is how NexTV became something actually usable.</p>
+      </div>
+
+      <div class="article-body reveal">
+
+        <h2>The Constraint</h2>
+        <p>I had no money to spend on this. No hosting budget, no paid API access. Whatever I built had to run entirely in the browser using free APIs. That's a real constraint, but it's also clarifying — when you can't do everything, you focus on what you can actually do.</p>
+        <p>TMDB (The Movie Database) has a free API with solid anime metadata: posters, synopses, episode counts, scores. No actual video files, but that wasn't the goal. NexTV is a discovery and organization tool first.</p>
+
+        <h2>Rate Limits and Debounce</h2>
+        <p>TMDB allows 40 API requests per 10 seconds. That sounds like a lot until you have a search box that fires a request on every keystroke. Three letters typed quickly = three wasted requests on incomplete queries, plus you're using up your rate limit budget on useless calls.</p>
+        <p>The fix is debounce — wait until the user stops typing before sending the request.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="kw">let</span> searchTimer;
+
+searchInput.<span class="fn">addEventListener</span>(<span class="st">'input'</span>, (e) => {
+  <span class="fn">clearTimeout</span>(searchTimer);
+
+  <span class="cm">// Only search after user pauses for 400ms</span>
+  searchTimer = <span class="fn">setTimeout</span>(() => {
+    <span class="kw">if</span> (e.target.value.<span class="fn">trim</span>()) <span class="fn">search</span>(e.target.value);
+  }, <span class="nm">400</span>);
+});</code></pre>
+        </div>
+
+        <p>400ms is the sweet spot. Faster and it's still spammy. Slower and the search feels sluggish. I tested with 200ms, 300ms, 400ms, and 600ms before landing on 400.</p>
+
+        <h2>Lazy Loading Posters</h2>
+        <p>A browse page might show 40–60 posters at once. If you set every <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">img src</code> immediately, the browser tries to load all 60 images at page load. That's slow and wastes bandwidth for images the user never scrolls to.</p>
+        <p>The solution is lazy loading with <strong>IntersectionObserver</strong>. Store the real image URL in a <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">data-src</code> attribute, use a placeholder as <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">src</code>, and only swap in the real URL when the image is about to enter the viewport.</p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="kw">const</span> observer = <span class="kw">new</span> <span class="fn">IntersectionObserver</span>((entries) => {
+  entries.<span class="fn">forEach</span>(({ isIntersecting, target }) => {
+    <span class="kw">if</span> (isIntersecting) {
+      target.src = target.dataset.src;
+      observer.<span class="fn">unobserve</span>(target); <span class="cm">// stop watching once loaded</span>
+    }
+  });
+}, { rootMargin: <span class="st">'200px'</span> }); <span class="cm">// load 200px before visible</span>
+
+document.<span class="fn">querySelectorAll</span>(<span class="st">'img[data-src]'</span>)
+  .<span class="fn">forEach</span>(img => observer.<span class="fn">observe</span>(img));</code></pre>
+        </div>
+
+        <p>The <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">rootMargin: '200px'</code> tells the observer to trigger 200px before the image enters the viewport. This means images are already loading by the time the user scrolls to them — no visible pop-in.</p>
+
+        <h2>The API Key Problem</h2>
+        <p>Here's the honest truth: the TMDB API key is visible to anyone who opens DevTools. There's no way around this when everything runs in the browser with no backend.</p>
+        <p>For NexTV this is acceptable because TMDB keys are free, rate-limited, and don't have billing attached. Someone stealing the key can make the same API calls I can — there's no cost to me. For a real product handling user data or paid APIs, you'd proxy through a backend. But for a solo project with no budget, client-side is fine.</p>
+
+        <h2>What I'd Build Differently Now</h2>
+        <p>A thin backend — even a free-tier Vercel edge function — would let me hide the API key and add simple caching. Right now every user's browser makes its own API calls. With a backend, you'd cache the trending data server-side and serve it to everyone from one cached response. Fewer calls, faster for users.</p>
+        <p>I didn't build that originally because I didn't know how. I do now. That's the point of building things.</p>
+
+        <hr />
+        <p>NexTV taught me more about browser performance than any article I'd read. The constraints of "no backend, no budget" forced me to actually understand how the browser handles network requests, images, and memory. Worth it.</p>
+
+      </div>
+
+      <div style="margin-top:60px;padding-top:32px;border-top:1px solid var(--border);">
+        <a href="blog-build-in-public.html" class="back-link" style="margin:0;">&larr; Build in Public</a>
+      </div>
+
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

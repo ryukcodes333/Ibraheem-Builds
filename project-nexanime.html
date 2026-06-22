@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexAnime — Ibraheem Builds</title>
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="detail-wrap">
+      <a href="projects.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Projects
+      </a>
+      <div class="detail-eyebrow load-up load-delay-1"><span class="card-category">Web Apps</span></div>
+      <h1 class="detail-title load-up load-delay-2">NexAnime</h1>
+      <p class="detail-desc load-up load-delay-3">AnimePahe-inspired anime streaming site powered by the AniList GraphQL API. Search, browse by genre, filter by season — full discovery experience without a backend.</p>
+
+      <div class="tech-icons load-up load-delay-4">
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/anilist/ffffff" alt="AniList" /><span>AniList GraphQL</span>
+        </div>
+        <div class="tech-icon-item">
+          <img src="https://cdn.simpleicons.org/javascript/ffffff" alt="JS" /><span>Vanilla JS</span>
+        </div>
+      </div>
+
+      <div class="detail-section reveal">
+        <p class="detail-section-label">How I Made It</p>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          AniList uses GraphQL which was new to me at the time. I expected it to be more complicated than REST, but it's actually better for this use case — you request exactly the fields you need, so the response is lean and the UI stays fast even on slower connections.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="kw">async function</span> <span class="fn">fetchSeasonal</span>(season, year) {
+  <span class="kw">const</span> query = <span class="st">`
+    query ($season: MediaSeason, $year: Int) {
+      Page(perPage: 24) {
+        media(season: $season, seasonYear: $year,
+              type: ANIME, sort: POPULARITY_DESC) {
+          id
+          title { romaji english }
+          coverImage { large }
+          episodes
+          averageScore
+          genres
+        }
+      }
+    }
+  `</span>;
+
+  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="st">'https://graphql.anilist.co'</span>, {
+    method: <span class="st">'POST'</span>,
+    headers: { <span class="st">'Content-Type'</span>: <span class="st">'application/json'</span> },
+    body: <span class="nm">JSON</span>.<span class="fn">stringify</span>({ query, variables: { season, year } })
+  });
+
+  <span class="kw">const</span> { data } = <span class="kw">await</span> res.<span class="fn">json</span>();
+  <span class="kw">return</span> data.Page.media;
+}</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;margin-bottom:20px;">
+          AniList has a rate limit of 90 requests per minute. I hit it on day one during testing by refreshing too fast. The fix was simple — cache seasonal data in sessionStorage so repeated visits to the same season page don't re-hit the API.
+        </p>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">javascript</span>
+            <div class="code-block-dots"><span></span><span></span><span></span></div>
+          </div>
+          <pre><code><span class="kw">async function</span> <span class="fn">getSeasonCached</span>(season, year) {
+  <span class="kw">const</span> key  = <span class="st">`season_</span><span class="nm">${season}</span><span class="st">_</span><span class="nm">${year}</span><span class="st">`</span>;
+  <span class="kw">const</span> hit  = sessionStorage.<span class="fn">getItem</span>(key);
+  <span class="kw">if</span> (hit) <span class="kw">return</span> <span class="nm">JSON</span>.<span class="fn">parse</span>(hit);
+
+  <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetchSeasonal</span>(season, year);
+  sessionStorage.<span class="fn">setItem</span>(key, <span class="nm">JSON</span>.<span class="fn">stringify</span>(data));
+  <span class="kw">return</span> data;
+}</code></pre>
+        </div>
+
+        <p style="font-size:1rem;color:var(--muted-md);line-height:1.8;">
+          The genre filter is entirely client-side — once you've loaded a season's worth of data, filtering by genre is just <code style="font-family:var(--mono);font-size:0.85em;color:var(--text);">.filter()</code> on the cached array. No extra API call needed.
+        </p>
+      </div>
+
+      <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <a href="project-iset.html" class="back-link" style="margin:0;">&larr; Iset</a>
+        <a href="project-nexcodes.html" class="view-all">NexCodes &rarr;</a>
+      </div>
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

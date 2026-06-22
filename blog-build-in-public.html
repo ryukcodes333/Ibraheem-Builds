@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Why I Build in Public — Ibraheem Builds</title>
+  <meta name="description" content="Sharing half-finished work is uncomfortable. The feedback loop makes it worth it." />
+  <meta property="og:image" content="/og.png" /><meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <nav>
+    <button class="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+    <a href="index.html" class="nav-logo">ibraheem.</a>
+  </nav>
+  <div class="menu-overlay">
+    <ul class="menu-links">
+      <li><a href="index.html">Home</a></li><li><a href="about.html">About</a></li>
+      <li><a href="projects.html">Projects</a></li><li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="menu-footer">
+      <a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener">X &rarr;</a>
+      <a href="mailto:ibraheemyakub48@gmail.com">Email &rarr;</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="article-wrap">
+
+      <a href="blog.html" class="back-link load-up">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
+        All Posts
+      </a>
+
+      <div class="article-header load-up load-delay-1">
+        <div class="article-meta">
+          <span class="article-tag">Mindset</span>
+          <span class="article-date">Sep 2024</span>
+          <span class="article-read">3 min read</span>
+        </div>
+        <h1 class="article-title">Why I Build in Public</h1>
+        <p class="article-lead">Sharing half-finished work is uncomfortable. You're never sure it's worth posting. But the feedback loop from building publicly is something you can't replicate any other way.</p>
+      </div>
+
+      <div class="article-body reveal">
+
+        <h2>The Resistance</h2>
+        <p>Every time I'm about to post something I've built, I have the same thought: "This isn't good enough yet." The UI isn't polished. The code is messy. Someone's going to point out a bug in public. There's always a reason to wait.</p>
+        <p>But waiting is expensive. Every day you don't ship, you lose the feedback that would have made the thing better. And "better" is a moving target anyway — you'll always find something to fix if you're looking for it.</p>
+
+        <h2>What Actually Happens When You Post</h2>
+        <p>I posted my first bot when it could only do three commands. I was embarrassed. I expected nothing, or worse, criticism. What I got instead:</p>
+        <ul>
+          <li>Three people asked if they could test it</li>
+          <li>Someone pointed out a bug I hadn't seen</li>
+          <li>One person suggested a feature I actually added</li>
+        </ul>
+        <p>None of that would have happened if I'd waited until it was "ready." There is no ready. There's only shipped and not shipped.</p>
+
+        <h2>It Keeps You Accountable</h2>
+        <p>When you post about what you're building, you create a public record. You said you were going to build this. That's enough pressure to actually finish it. I've abandoned private projects dozens of times. I've never abandoned something I posted about publicly.</p>
+        <p>The audience doesn't even need to be large. Ten people watching is enough. You're not building a following — you're giving yourself a commitment device.</p>
+
+        <h2>You Learn Faster</h2>
+        <p>Building in public forces you to explain what you're doing. Explaining forces you to understand it properly. I've caught misunderstandings in my own thinking by trying to write a clear description of what I built.</p>
+        <p>It also puts you in contact with people who've already solved the problems you're working on. The developer who replied to my post about session management had exactly the fix I needed. That's not luck — that's what happens when you're visible.</p>
+
+        <blockquote>
+          <p>The best way to get a good answer on the internet is not to ask a question — it's to post the wrong answer and let someone correct you.</p>
+        </blockquote>
+
+        <h2>What I Post</h2>
+        <p>I try to post things that are real. Not polished demos — actual screenshots of things working (or breaking). A clip of the bot responding. A before/after of a UI improvement. The concrete thing, not the idea of the thing.</p>
+        <p>Nobody is interested in "I'm building an app." Everybody is interested in "here's the weird bug I just fixed." Specificity is the point.</p>
+
+        <hr />
+        <p>If you're sitting on something you've built and haven't posted it yet — post it. The embarrassment lasts about 10 minutes. The feedback lasts forever.</p>
+
+      </div>
+
+      <div style="margin-top:60px;padding-top:32px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <a href="blog-claude-api.html" class="back-link" style="margin:0;">&larr; Claude API</a>
+        <a href="blog-nextv.html" class="view-all">Next: Building NexTV &rarr;</a>
+      </div>
+
+    </div>
+    <footer><p><span>&copy; 2024 Ibraheem Builds</span><a href="https://x.com/TheRealIbraheem" target="_blank" rel="noopener"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.402 6.231H2.744l7.735-8.836L1.254 2.25h6.77l4.262 5.63 5.958-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117Z"/></svg>@TheRealIbraheem</a></p></footer>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
